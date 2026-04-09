@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 import useProfileStatus from "../hooks/useProfileStatus";
 import csrfManager from "../utils/csrfManager";
 import { useAuth } from "../context/AuthContext";
+import { buildApiUrl } from "../config/api";
 
 const Profile = () => {
   const { user: authUser, updateUser } = useAuth();
@@ -84,15 +85,18 @@ const Profile = () => {
     setIsSaving(true);
 
     try {
-      const profileResponse = await csrfManager.secureFetch("http://localhost:5000/api/profile/me", {
-        method: "PUT",
-        body: JSON.stringify({
-          email: formData.email,
-          name: formData.username,
-          location: formData.location,
-          profilePictureUrl: profileData?.profilePictureUrl || null,
-        }),
-      });
+      const profileResponse = await csrfManager.secureFetch(
+        buildApiUrl("/api/profile/me"),
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            email: formData.email,
+            name: formData.username,
+            location: formData.location,
+            profilePictureUrl: profileData?.profilePictureUrl || null,
+          }),
+        }
+      );
 
       if (!profileResponse.ok) {
         throw new Error("Failed to update profile");

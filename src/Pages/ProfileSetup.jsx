@@ -3,6 +3,7 @@ import { toast } from 'react-toastify';
 import useProfileStatus from '../hooks/useProfileStatus';
 import csrfManager from '../utils/csrfManager';
 import { useAuth } from '../context/AuthContext';
+import { buildApiUrl } from '../config/api';
 import 'react-toastify/dist/ReactToastify.css';
 
 const ProfileSetup = () => {
@@ -69,7 +70,7 @@ const ProfileSetup = () => {
         try {
           const fd = new FormData();
           fd.append('image', profileImageFile);
-          const uploadRes = await csrfManager.secureFetch('http://localhost:5000/api/profile/me/profile-picture', {
+          const uploadRes = await csrfManager.secureFetch(buildApiUrl('/api/profile/me/profile-picture'), {
             method: 'POST',
             body: fd
           });
@@ -89,7 +90,7 @@ const ProfileSetup = () => {
       }
 
       // Create or update the user profile in our database
-      const profileResponse = await csrfManager.secureFetch('http://localhost:5000/api/profile/me', {
+      const profileResponse = await csrfManager.secureFetch(buildApiUrl('/api/profile/me'), {
         method: 'POST',
         body: JSON.stringify({
           email: formData.email,

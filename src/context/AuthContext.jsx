@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import csrfManager from "../utils/csrfManager";
+import { buildApiUrl } from "../config/api";
 
 const AUTH_USER_STORAGE_KEY = "authUser";
-const API_BASE_URL = "http://localhost:5000";
 
 const AuthContext = createContext(null);
 
@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const authenticate = async (path, payload) => {
-    const response = await csrfManager.secureFetch(`${API_BASE_URL}${path}`, {
+    const response = await csrfManager.secureFetch(buildApiUrl(path), {
       method: "POST",
       body: JSON.stringify(payload),
     });

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import csrfManager from "../utils/csrfManager";
+import { buildApiUrl } from "../config/api";
 
 const useProfileStatus = () => {
   const { user, isSignedIn, updateUser } = useAuth();
@@ -17,7 +18,7 @@ const useProfileStatus = () => {
     }
 
     try {
-      const response = await csrfManager.secureFetch("http://localhost:5000/api/profile/me");
+      const response = await csrfManager.secureFetch(buildApiUrl("/api/profile/me"));
 
       if (response.ok) {
         const contentType = response.headers.get("content-type") || "";

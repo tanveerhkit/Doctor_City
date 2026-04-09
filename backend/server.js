@@ -3,6 +3,46 @@ const os = require("os");
 const process = require("process");
 
 const numCPUs = os.cpus().length;
+const LOCAL_DEV_ORIGIN_PATTERN =
+  /^https?:\/\/(localhost|127(?:\.\d{1,3}){3}|\[::1\])(?::\d+)?$/i;
+const DEFAULT_ALLOWED_ORIGINS = ["https://doctor-city.vercel.app"];
+
+const parseConfiguredOrigins = (value = "") =>
+  value
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+const buildCorsOriginChecker = () => {
+  const configuredOrigins = new Set(
+    parseConfiguredOrigins(process.env.CORS_ORIGINS).concat(
+      DEFAULT_ALLOWED_ORIGINS
+    )
+  );
+
+  return (origin, callback) => {
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+
+    if (configuredOrigins.has(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    if (
+      process.env.NODE_ENV !== "production" &&
+      LOCAL_DEV_ORIGIN_PATTERN.test(origin)
+    ) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error(`Origin ${origin} is not allowed by CORS`));
+  };
+};
+
 if (cluster.isPrimary) {
   console.log(`======================================`);
   console.log(`Doctor City Backend Primary Process Started`);
@@ -64,11 +104,7 @@ if (cluster.isPrimary) {
   // === Middlewares ===
   app.use(
     cors({
-      origin: [
-        "http://localhost:3000",
-        "https://doctor-city.vercel.app/login",
-        "https://doctor-city.vercel.app/signup",
-      ],
+      origin: buildCorsOriginChecker(),
       credentials: true,
     })
   );

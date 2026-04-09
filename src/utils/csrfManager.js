@@ -1,3 +1,5 @@
+import { buildApiUrl } from "../config/api";
+
 /**
  * CSRF Token Management Utility
  * Handles CSRF token fetching and inclusion in requests
@@ -14,8 +16,10 @@ class CSRFManager {
    * @returns {Promise<string>} CSRF token
    */
   async fetchToken() {
+    const csrfTokenUrl = buildApiUrl("/api/csrf-token");
+
     try {
-      const response = await fetch("http://localhost:5000/api/csrf-token", {
+      const response = await fetch(csrfTokenUrl, {
         method: "GET",
         credentials: "include",
       });
@@ -29,6 +33,11 @@ class CSRFManager {
       return this.token;
     } catch (error) {
       console.error("CSRF token fetch error:", error);
+      if (error instanceof TypeError) {
+        throw new Error(
+          `Unable to reach the backend at ${csrfTokenUrl}. Make sure the backend is running and accessible from this device.`
+        );
+      }
       throw error;
     }
   }
@@ -125,7 +134,17 @@ class CSRFManager {
 
     options.credentials = options.credentials || "include";
 
-    const response = await fetch(url, options);
+    let response;
+    try {
+      response = await fetch(url, options);
+    } catch (error) {
+      if (error instanceof TypeError) {
+        throw new Error(
+          `Unable to reach the backend at ${url}. Make sure the backend is running and accessible from this device.`
+        );
+      }
+      throw error;
+    }
 
     // If CSRF token is invalid, clear it and retry once
     if (response.status === 403 && needsCSRF) {
